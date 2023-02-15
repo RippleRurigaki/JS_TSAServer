@@ -1,14 +1,3 @@
-export const buffer2Str = (b:Uint8Array,pos?:number,len?:number) =>{
-    const _str:Array<string> = [];
-    const _pos = pos||0;
-    const _len = len||b.length;
-    for(let i=0;i<_len;i++){
-        if(typeof b[_pos+i] === "number"){
-            _str.push(String.fromCodePoint(b[_pos+i]))
-        }
-    }
-    return _str.join('');
-}
 export const buffer2Hex = (b:Uint8Array,pos?:number,len?:number) =>{
     const _str:Array<string> = [];
     const _pos = pos||0;
@@ -26,40 +15,6 @@ export const hex2buffer = (hex:string) => {
         return new Uint8Array(0);
     }
     return Uint8Array.from(hexMap.map((byte) => parseInt(byte, 16)));
-}
-export const splitAsn1Sequence = (der:Uint8Array) => {
-    let pos = 0;
-    let ctx = true;
-    if(der[pos] !== 0xA0){
-        return;
-    }
-    pos++;
-    let filedLen = -1;
-    const retBuf:Array<Uint8Array> = [];
-    while(pos<der.length){
-        if(der[pos]<128){
-            filedLen = der[pos];
-        }else{
-            const filedLenLen = der[pos] & 0x7f;
-            pos++;
-            filedLen = 0;
-            for(let i=filedLenLen;i>0;i--){
-                filedLen +=der[pos]*(256**(i-1));
-                pos++;
-            }
-            if(ctx){
-                if(der.length-pos !== filedLen){
-                    return
-                }
-                ctx = false;
-            }else{
-                retBuf.push(der.subarray(pos-filedLenLen-2,pos+filedLen));
-                pos += filedLen;
-            }
-        }
-        pos++;
-    }
-    return retBuf;
 }
 export const getTimeStr = (millis?:boolean) =>{
     const n = new Date();
