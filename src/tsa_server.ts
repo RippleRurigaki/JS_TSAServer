@@ -80,19 +80,22 @@ const initilize = (sv:express.Express) => {
     const txtDec = new TextDecoder();
     const cert = txtDec.decode(Uint8Array.from(readFileSync(options.cert)));
     const usages = (()=>{
+        if(options.forcekeyusage){
+            return true;
+        }
         try{
             const x509 = new X509(cert);
             const usage = x509.getExtKeyUsage();
             const usageEx = x509.getExtExtKeyUsage();
-            return [...usage?usage.names:[],...usageEx?usageEx.array:[]];
+            if(!usage && !usageEx){
+                return true;
+            }
+            return [...usage?usage.names:[],...usageEx?usageEx.array:[]].includes("timeStamping");
         }catch(e){
-            return;
+            throw new Error("Unsupport cert file.");
         }
     })();
     if(!usages){
-        throw new Error("Unsupport cert file.");
-    }
-    if(!usages.includes("timeStamping") && !options.forcekeyusage){
         throw new Error("Certificate is not usage 'TimeStamping'.");
     }
     srvStatus.setCert(cert);
